@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cartões QR da festa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<style>
+  :root { --pink:#ff9fcf; --pink-deep:#f06aaa; --lilac:#bfa3ff; --lilac-deep:#8f6ae8; --blue:#8fd0ff; --blue-deep:#3fa3e8; --gold:#e8b93c; --gold-deep:#c4931a; --ink:#4a3566; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Nunito", sans-serif; color: var(--ink); background: #f3eefa; }
+  .toolbar { max-width: 820px; margin: 0 auto; padding: 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .toolbar input { flex: 1; min-width: 220px; padding: 10px 12px; border: 2px solid #dccdfa; border-radius: 12px; font: inherit; }
+  .toolbar button { padding: 10px 18px; border: 0; border-radius: 12px; background: var(--lilac-deep); color: #fff; font: 700 1rem "Fredoka", sans-serif; cursor: pointer; }
+  .hint { width: 100%; margin: 0; font-size: .85rem; color: #7a6b93; }
+  .sheet { width: 210mm; height: 297mm; overflow: hidden; margin: 0 auto 30px; background: #fff; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+  .card {
+    margin: 5mm; border-radius: 8mm; padding: 5mm 6mm; text-align: center; min-height: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border: 1.2mm dashed var(--lilac);
+    background:
+      radial-gradient(circle at 10% 12%, var(--pink) 2.2mm, transparent 2.4mm),
+      radial-gradient(circle at 88% 10%, var(--blue) 1.8mm, transparent 2mm),
+      radial-gradient(circle at 92% 88%, var(--gold) 2mm, transparent 2.2mm),
+      radial-gradient(circle at 8% 90%, var(--lilac) 1.8mm, transparent 2mm),
+      #fffafd;
+  }
+  .brasao { width: 42mm; height: auto; margin: 0 0 2mm; }
+  .kicker { font-weight: 800; font-size: 11pt; color: #8a7aa3; margin: 0; }
+  .name { font: 700 24pt/1.05 "Fredoka", sans-serif; margin: 1mm 0 0; color: var(--pink-deep); overflow-wrap: anywhere; }
+  .age { font: 700 15pt "Fredoka", sans-serif; color: var(--gold-deep); margin: 1mm 0 4mm; }
+  .age b { font-size: 26pt; color: var(--gold); vertical-align: -3pt; }
+  .qr { background: #fff; padding: 3mm; border-radius: 4mm; border: 1mm solid var(--pink); }
+  .qr img, .qr canvas { display: block; width: 36mm !important; height: 36mm !important; }
+  .cta { font: 600 13pt/1.25 "Fredoka", sans-serif; color: var(--lilac-deep); margin: 4mm 0 0; }
+  .small { font-size: 9pt; color: #8a7aa3; margin: 1.5mm 0 0; }
+  @media print {
+    @page { size: A4; margin: 0; }
+    body { background: #fff; }
+    .toolbar { display: none; }
+    .sheet { margin: 0; }
+  }
+</style>
+</head>
+<body>
+  <div class="toolbar">
+    <input id="url" placeholder="Endereço do site (https://...)">
+    <button id="print" type="button">Imprimir</button>
+    <p class="hint">4 cartões por folha A4. Recorte e coloque nas mesas. O endereço vem do <code>siteUrl</code> do config.js.</p>
+  </div>
+  <div class="sheet" id="sheet"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  const C = window.FESTA || {};
+  const urlInput = document.getElementById('url');
+  urlInput.value = C.siteUrl || location.href.replace(/qrcode\.html.*$/, '');
+  document.title = 'Cartões QR — ' + (C.nome || 'festa');
+
+  function build() {
+    const sheet = document.getElementById('sheet');
+    sheet.innerHTML = '';
+    for (let i = 0; i < 4; i++) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = '<img class="brasao" src="img/brasao.webp" alt="">' +
+        '<div class="qr"></div>' +
+        '<p class="cta">Tire fotos, grave vídeos e deixe um recadinho para a <span class="nm"></span>!</p>' +
+        '<p class="small">Aponte a câmera do celular para o código</p>';
+      card.querySelector('.nm').textContent = C.nome || 'aniversariante';
+      sheet.append(card);
+      new QRCode(card.querySelector('.qr'), {
+        text: urlInput.value.trim() || location.href, width: 400, height: 400,
+        colorDark: '#4a3566', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M,
+      });
+    }
+  }
+  urlInput.addEventListener('change', build);
+  document.getElementById('print').addEventListener('click', () => window.print());
+  build();
+</script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Festa de 1 aninho</title>
+<meta name="theme-color" content="#ffd6ec">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="config.js"></script>
+</head>
+<body>
+
+<main id="app">
+  <div id="demoBanner" class="demo-banner" hidden>Modo demonstração — nada está sendo salvo. Configure o <code>apiUrl</code> no config.js.</div>
+
+  <header class="hero">
+    <div class="sky" aria-hidden="true">
+      <img src="img/estrela.webp" alt="" class="star s1">
+      <img src="img/estrela.webp" alt="" class="star s2">
+      <img src="img/estrela.webp" alt="" class="star s3">
+      <img src="img/estrela.webp" alt="" class="star s4">
+      <img src="img/estrela.webp" alt="" class="star s5">
+      <i class="twinkle t1"></i><i class="twinkle t2"></i><i class="twinkle t3"></i><i class="twinkle t4"></i><i class="twinkle t5"></i><i class="twinkle t6"></i>
+    </div>
+    <h1 class="visually-hidden">O Reino Encantado da <span data-nome>Aniversariante</span></h1>
+    <img class="logo" src="img/logo-reino.webp" alt="O Reino Encantado da Laurinha" width="954" height="1000" fetchpriority="high">
+    <div class="hero-age"><span class="big-one">1</span><span class="age-text">aninho!</span></div>
+    <p class="hero-date" data-data hidden></p>
+  </header>
+
+  <p class="hero-sub">Seja bem-vindo ao Reino! Registre os momentos da festa com fotos, vídeos e um recadinho com carinho.</p>
+
+  <section class="card send" aria-label="Enviar">
+    <img class="crown" src="img/coroa.webp" alt="" aria-hidden="true" width="600" height="336">
+    <label class="field">
+      <span>Seu nome</span>
+      <input id="author" maxlength="60" placeholder="Ex.: Tia Ana" autocomplete="name">
+    </label>
+    <div class="actions">
+      <label class="btn btn-pink" for="fileInput">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        Foto ou vídeo
+      </label>
+      <button class="btn btn-lilac" id="msgToggle" type="button" aria-expanded="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>
+        Mensagem
+      </button>
+    </div>
+    <input id="fileInput" class="visually-hidden" type="file" accept="image/*,video/*" multiple>
+
+    <form id="msgForm" class="msg-form" hidden>
+      <textarea id="msgText" maxlength="1000" rows="4" placeholder="Escreva um recadinho..."></textarea>
+      <div class="msg-foot">
+        <span id="msgCount" class="muted">0/1000</span>
+        <button class="btn btn-blue btn-small" type="submit">Enviar mensagem</button>
+      </div>
+    </form>
+
+    <ul id="queue" class="queue" aria-live="polite"></ul>
+  </section>
+
+  <section class="mural" aria-label="Mural da festa">
+    <div class="mural-head">
+      <img class="unicorn" src="img/unicornio.webp" alt="" aria-hidden="true" width="600" height="579">
+      <div>
+        <h2>Mural do Reino</h2>
+        <span id="count" class="muted"></span>
+      </div>
+    </div>
+    <div class="filters" role="tablist">
+      <button type="button" class="chip active" data-filter="all">Tudo</button>
+      <button type="button" class="chip" data-filter="photo">Fotos</button>
+      <button type="button" class="chip" data-filter="video">Vídeos</button>
+      <button type="button" class="chip" data-filter="message">Mensagens</button>
+    </div>
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty" hidden>
+      <img src="img/carruagem.webp" alt="" aria-hidden="true" class="carriage" width="600" height="463">
+      <p>A carruagem está esperando as primeiras lembranças... seja o primeiro a enviar!</p>
+    </div>
+    <p id="loading" class="empty">Carregando o mural...</p>
+  </section>
+
+  <footer class="foot">
+    <img src="img/castelo.webp" alt="" aria-hidden="true" width="532" height="700">
+    <p>Feito com carinho para a <span data-nome>Aniversariante</span> 👑</p>
+  </footer>
+</main>
+
+<div id="lightbox" class="lightbox" hidden role="dialog" aria-modal="true">
+  <button class="lb-close" type="button" aria-label="Fechar">×</button>
+  <div class="lb-body"></div>
+  <div class="lb-caption"></div>
+</div>
+
+<button id="fab" class="fab" type="button" hidden aria-label="Enviar foto, vídeo ou mensagem">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+  Enviar
+</button>
+
+<div id="toast" class="toast" hidden></div>
+
+<div id="thanks" class="thanks" hidden aria-live="polite">
+  <div class="thanks-card">
+    <img src="img/laurinha.webp" alt="" aria-hidden="true" width="469" height="700">
+    <p class="thanks-title">Obrigada!</p>
+    <p class="thanks-text" id="thanksText"></p>
+  </div>
+</div>
+
+<div id="telao" class="telao" hidden>
+  <div class="telao-stage" id="stage"></div>
+  <aside class="telao-side">
+    <img class="telao-logo" src="img/logo-reino.webp" alt="O Reino Encantado da Laurinha">
+    <div class="qr-box"><div id="qr"></div></div>
+    <p class="telao-cta">Aponte a câmera do celular e mande sua foto, vídeo ou recadinho!</p>
+    <p class="telao-count" id="telaoCount"></p>
+  </aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
