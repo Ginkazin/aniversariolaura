@@ -37,6 +37,7 @@
   .sheet.n1 { width: 210mm; height: 297mm; --w: 190mm; }
   .sheet.n2 { width: 297mm; height: 210mm; --w: 128mm; grid-template-columns: auto auto; }
   .sheet.n4 { width: 210mm; height: 297mm; --w: 92mm; grid-template-columns: auto auto; gap: 4mm; }
+  .sheet.nfoto { width: 100mm; height: 150mm; --w: 100mm; gap: 0; }
 
   /* ---------- Cartaz (proporção 2:3; 1em = 1% da largura) ---------- */
   .poster {
@@ -101,9 +102,10 @@
   <div class="toolbar">
     <input id="url" placeholder="Endereço do site (https://...)">
     <select id="qtd" aria-label="Cartazes por folha">
-      <option value="1">1 por folha (A4)</option>
-      <option value="2">2 por folha (A4 deitada)</option>
-      <option value="4">4 por folha (A4)</option>
+      <option value="foto">10×15 cm — display de mesa / gráfica</option>
+      <option value="2">2 por folha A4 (13×19 cm cada) — impressora de casa</option>
+      <option value="4">4 por folha A4 (9×14 cm cada)</option>
+      <option value="1">1 por folha A4 (cartaz de parede)</option>
     </select>
     <button id="print" type="button">Imprimir / salvar PDF</button>
     <p class="hint">O endereço vem do <code>siteUrl</code> do config.js. Os textos podem ser editados no topo deste arquivo (qrcode.html).
@@ -168,11 +170,13 @@
   }
 
   function build() {
-    const n = Number(qtd.value);
+    const modo = qtd.value;
+    const n = modo === 'foto' ? 1 : Number(modo);
     const sheet = document.getElementById('sheet');
-    sheet.className = 'sheet n' + n;
-    document.getElementById('pageSize').textContent =
-      `@page { size: A4 ${n === 2 ? 'landscape' : 'portrait'}; margin: 0; }`;
+    sheet.className = 'sheet n' + modo;
+    document.getElementById('pageSize').textContent = modo === 'foto'
+      ? '@page { size: 100mm 150mm; margin: 0; }'
+      : `@page { size: A4 ${n === 2 ? 'landscape' : 'portrait'}; margin: 0; }`;
     sheet.innerHTML = '';
     const tpl = document.getElementById('tpl');
     for (let i = 0; i < n; i++) {
