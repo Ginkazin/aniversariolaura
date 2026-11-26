@@ -11,7 +11,7 @@ window.FESTA = {
   // URL do Apps Script (termina em /exec). Veja o LEIAME.md.
   // Enquanto estiver vazio, o site funciona em MODO DEMONSTRAÇÃO
   // (nada é salvo de verdade).
-  apiUrl: "",
+  apiUrl: "https://script.google.com/macros/s/AKfycbyEhxFGt80O3CrmDLN8SxWIWER3reZzQ3YME1DOt2n_LylK9rEUgrIqJR5mxqMV-kH_Fw/exec",
 
   // Endereço público do site (usado no QR code do telão e dos cartões).
   // Ex.: "https://festa-da-maria.netlify.app"
