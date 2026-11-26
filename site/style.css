@@ -70,8 +70,6 @@ body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
   border-radius: 0 0 40px 40px;
   background:
     radial-gradient(ellipse at 50% 38%, rgba(191,163,255,.35), transparent 60%),
-    linear-gradient(180deg, #1d1135 0%, #33195a 55%, #4b2777 100%);
-  box-shadow: 0 10px 30px rgba(75,39,119,.25);
 }
 .demo-banner + .hero { margin-top: 12px; border-radius: 28px 28px 40px 40px; }
 .sky { position: absolute; inset: 0; pointer-events: none; }
@@ -94,8 +92,8 @@ body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
 @keyframes float { 50% { transform: translateY(-6px); } }
 .hero .hero-age { position: relative; margin-top: 2px; }
 .hero .big-one { font-size: 3.6rem; text-shadow: 0 3px 0 var(--gold-deep), 0 0 24px rgba(232,185,60,.55); }
-.hero .age-text { color: #ffe6a3; }
-.hero .hero-date { position: relative; color: #ffd0ea; margin-top: 2px; letter-spacing: .02em; }
+.hero .age-text { background: linear-gradient(90deg, var(--gold), var(--gold-deep)); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: 1.4rem; }
+.hero .hero-date { position: relative; color: var(--lilac-deep); margin-top: 2px; letter-spacing: .02em; }
 .hero-kicker { margin: 4px 0 0; font-weight: 700; color: var(--muted); letter-spacing: .02em; }
 .hero-name {
   font-family: "Fredoka", sans-serif; font-weight: 700;
@@ -115,13 +113,12 @@ body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
 .hero-sub { max-width: 30em; margin: 18px auto 0; color: var(--muted); text-align: center; font-weight: 600; }
 
 /* Coroa em cima do cartão de envio */
-.send { position: relative; margin-top: 66px; padding-top: 34px; }
+.send { position: relative; }
 .crown {
-  position: absolute; left: 50%; top: -46px; width: 130px; height: auto; transform: translateX(-50%) rotate(-4deg);
-  filter: drop-shadow(0 6px 10px rgba(196,147,26,.35));
-  animation: crown-wobble 5s ease-in-out infinite;
+  position:absolute;
+  width:22px; height:auto; top:-12px; left: -7px; transform:rotate(-25deg); filter: drop-shadow(0 2px 3px rgba(196, 147, 26,.4)); animation: crown-wobble 4s ease-in-out infinite;
 }
-@keyframes crown-wobble { 50% { transform: translateX(-50%) rotate(4deg) translateY(-3px); } }
+@keyframes crown-wobble { 50% { transform: rotate(-15deg) translateY(-1px); } }
 
 /* ---------- Card de envio ---------- */
 .card {
@@ -224,14 +221,109 @@ body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
 }
 .tile .placeholder.photo-ph { background: linear-gradient(135deg, var(--pink), var(--lilac)); }
 
-.tile.message { padding: 16px 14px 12px; cursor: default; }
-.tile.message p { margin: 0; font-size: 1rem; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
-.tile.message footer { margin-top: 10px; font-weight: 800; font-size: .85rem; }
-.tile.message.c0 { background: #ffe3f1; } .tile.message.c0 footer { color: var(--pink-deep); }
-.tile.message.c1 { background: #efe6ff; } .tile.message.c1 footer { color: var(--lilac-deep); }
-.tile.message.c2 { background: #e2f3ff; } .tile.message.c2 footer { color: var(--blue-deep); }
-.tile.message.c3 { background: #fff3d6; } .tile.message.c3 footer { color: var(--gold-deep); }
-.tile.message::before { content: "“"; position: absolute; right: 10px; top: -6px; font-family: "Fredoka"; font-size: 3.2rem; opacity: .18; }
+/* ---------- Recados e suas molduras ---------- */
+.tile.message { padding: 16px 16px 14px; cursor: default; }
+.tile.message p { position: relative; margin: 0; font-size: 1rem; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+.tile.message footer { position: relative; margin-top: 10px; font-weight: 800; font-size: .85rem; }
+.deco { display: none; position: absolute; background: center / contain no-repeat; pointer-events: none; }
+
+/* Sem moldura: cartão pastel simples */
+.tile.message.f-none.c0 { background: #ffe3f1; } .tile.message.f-none.c0 footer { color: var(--pink-deep); }
+.tile.message.f-none.c1 { background: #efe6ff; } .tile.message.f-none.c1 footer { color: var(--lilac-deep); }
+.tile.message.f-none.c2 { background: #e2f3ff; } .tile.message.f-none.c2 footer { color: var(--blue-deep); }
+.tile.message.f-none.c3 { background: #fff3d6; } .tile.message.f-none.c3 footer { color: var(--gold-deep); }
+
+/* Reino: degradê rosa/lilás/azul, filete dourado, coroa no topo, estrelas */
+.tile.message.f-reino {
+  padding-top: 40px;
+  background: linear-gradient(140deg, #ffd9ee, #e9dfff 55%, #d9efff);
+  box-shadow: inset 0 0 0 4px rgba(255,255,255,.85), inset 0 0 0 5.5px rgba(232,185,60,.8), 0 4px 14px rgba(143,106,232,.12);
+}
+.f-reino footer { color: var(--pink-deep); padding-right: 22px; }
+.f-reino .deco-a { display: block; left: 50%; top: 8px; width: 50px; height: 28px; transform: translateX(-50%) rotate(-6deg); background-image: url(img/coroa.webp); filter: drop-shadow(0 2px 3px rgba(196,147,26,.35)); }
+.f-reino .deco-b { display: block; right: 9px; bottom: 9px; width: 18px; height: 18px; background-image: url(img/estrela.webp); }
+.f-reino .deco-c { display: block; left: 12px; top: 12px; width: 13px; height: 13px; background-image: url(img/estrela.webp); transform: rotate(-20deg); }
+
+/* Céu estrelado: noite roxa, texto claro, estrelas douradas */
+.tile.message.f-ceu {
+  padding-top: 22px; color: #fff;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255,255,255,.8) 1px, transparent 1.6px),
+    radial-gradient(circle at 72% 14%, rgba(255,255,255,.7) 1px, transparent 1.6px),
+    radial-gradient(circle at 88% 60%, rgba(255,255,255,.8) 1.2px, transparent 1.8px),
+    radial-gradient(circle at 34% 86%, rgba(255,255,255,.6) 1px, transparent 1.6px),
+    radial-gradient(circle at 56% 48%, rgba(255,255,255,.5) .8px, transparent 1.4px),
+    linear-gradient(180deg, #1d1135, #3a1d66 60%, #4b2777);
+  box-shadow: inset 0 0 0 4px rgba(255,255,255,.12), inset 0 0 0 5.5px rgba(232,185,60,.7), 0 4px 14px rgba(45,25,75,.25);
+}
+.f-ceu footer { color: #ffd77a; padding-left: 22px; }
+.f-ceu .deco-a { display: block; right: 10px; top: 9px; width: 22px; height: 22px; background-image: url(img/estrela.webp); transform: rotate(15deg); filter: drop-shadow(0 0 5px rgba(255,220,140,.7)); }
+.f-ceu .deco-b { display: block; left: 12px; bottom: 12px; width: 15px; height: 15px; background-image: url(img/estrela.webp); filter: drop-shadow(0 0 4px rgba(255,220,140,.7)); }
+.f-ceu .deco-c { display: block; right: 30px; top: 6px; width: 10px; height: 10px; background-image: url(img/estrela.webp); }
+
+/* Princesa: claro azul/rosa, moldura dupla dourada, coroa de lado e carruagem */
+.tile.message.f-princesa {
+  padding: 34px 18px 16px;
+  background: linear-gradient(160deg, #dff1ff, #ffffff 50%, #ffe1f0);
+  box-shadow: inset 0 0 0 3px #e8b93c, inset 0 0 0 6px #fff, inset 0 0 0 7.5px rgba(232,185,60,.6), 0 4px 14px rgba(143,106,232,.12);
+}
+.f-princesa footer { color: var(--pink-deep); padding-right: 52px; min-height: 30px; display: flex; align-items: flex-end; }
+.f-princesa .deco-a { display: block; left: 10px; top: 6px; width: 40px; height: 24px; background-image: url(img/coroa.webp); transform: rotate(-24deg); filter: drop-shadow(0 2px 3px rgba(196,147,26,.35)); }
+.f-princesa .deco-b { display: block; right: 10px; bottom: 10px; width: 46px; height: 36px; background-image: url(img/carruagem.webp); }
+.f-princesa .deco-c { display: block; right: 14px; top: 12px; width: 12px; height: 12px; background-image: url(img/estrela.webp); }
+
+/* Escolha da moldura no formulário de recado */
+.mf-label { margin: 14px 0 6px; font-weight: 800; font-size: .9rem; }
+.mf-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.mf-opt {
+  display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 6px 3px 7px; cursor: pointer;
+  border: 2px solid #eadcff; border-radius: 12px; background: #fff; color: var(--muted);
+  font-size: .7rem; font-weight: 800; line-height: 1.15; text-align: center;
+}
+.mf-opt.active { border-color: var(--gold); background: #fff6db; color: var(--gold-deep); box-shadow: 0 0 0 2px rgba(232,185,60,.35); }
+.mf-sw { display: block; width: 100%; height: 34px; border-radius: 8px; }
+.sw-none { background: linear-gradient(90deg, #ffe3f1 25%, #efe6ff 25% 50%, #e2f3ff 50% 75%, #fff3d6 75%); }
+.sw-reino { background: url(img/coroa.webp) center / 26px no-repeat, linear-gradient(140deg, #ffd9ee, #e9dfff 55%, #d9efff); box-shadow: inset 0 0 0 2px rgba(232,185,60,.8); }
+.sw-ceu { background: url(img/estrela.webp) 70% 40% / 14px no-repeat, radial-gradient(circle at 25% 30%, #fff 1px, transparent 1.6px), linear-gradient(180deg, #1d1135, #4b2777); box-shadow: inset 0 0 0 2px rgba(232,185,60,.7); }
+.sw-princesa { background: url(img/carruagem.webp) 85% 70% / 22px no-repeat, linear-gradient(160deg, #dff1ff, #fff 50%, #ffe1f0); box-shadow: inset 0 0 0 2px #e8b93c, inset 0 0 0 4px #fff, inset 0 0 0 5px rgba(232,185,60,.6); }
+#msgPreview { margin: 0; animation: none; }
+
+/* ---------- Escolha de moldura (folha que sobe de baixo) ---------- */
+.fp-modal {
+  position: fixed; inset: 0; z-index: 65; display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(45,25,75,.55); animation: fade-in .2s ease-out;
+}
+.fp-sheet {
+  width: 100%; max-width: 520px; max-height: 100%; overflow-y: auto; overscroll-behavior: contain;
+  background: #fff7fc; border-radius: 26px 26px 0 0;
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+  box-shadow: 0 -10px 30px rgba(0,0,0,.2);
+  animation: sheet-up .3s cubic-bezier(.2,.9,.3,1);
+}
+@keyframes sheet-up { from { transform: translateY(100%); } }
+.fp-head { display: flex; align-items: center; justify-content: space-between; }
+.fp-head h3 { margin: 0; font-family: "Fredoka", sans-serif; font-weight: 700; font-size: 1.35rem; color: var(--lilac-deep); }
+.fp-close { width: 40px; height: 40px; border: 0; border-radius: 50%; background: #efe6ff; color: var(--lilac-deep); font-size: 1.6rem; line-height: 1; cursor: pointer; }
+.fp-preview {
+  position: relative; margin-top: 10px; display: flex; align-items: center; justify-content: center;
+  height: min(50vh, 440px); padding: 10px; border-radius: 18px; background: #f1e9fb;
+}
+.fp-preview canvas {
+  display: block; width: auto; height: auto; max-width: 100%;
+  max-height: calc(min(50vh, 440px) - 20px);
+  border-radius: 10px; box-shadow: 0 6px 18px rgba(75,39,119,.2);
+}
+.fp-loading { position: absolute; bottom: 10px; font-size: .85rem; font-weight: 700; color: var(--muted); background: rgba(255,255,255,.85); padding: 4px 10px; border-radius: 999px; }
+.fp-count { text-align: center; margin: 8px 0 0; font-size: .85rem; font-weight: 700; color: var(--muted); }
+.fp-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+.fp-opt {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 4px 8px; cursor: pointer;
+  border: 2px solid #eadcff; border-radius: 14px; background: #fff; color: var(--muted);
+  font-size: .72rem; font-weight: 800; line-height: 1.15; text-align: center;
+}
+.fp-opt canvas { width: 100%; aspect-ratio: 3 / 4; object-fit: contain; border-radius: 8px; background: #f6f0fd; }
+.fp-opt.active { border-color: var(--gold); background: #fff6db; color: var(--gold-deep); box-shadow: 0 0 0 2px rgba(232,185,60,.35); }
+.fp-send { width: 100%; margin-top: 14px; }
 
 .empty { text-align: center; color: var(--muted); padding: 30px 10px; }
 .empty p { margin: 8px auto 0; max-width: 22em; font-weight: 600; }
@@ -299,6 +391,20 @@ body.telao-mode { overflow: hidden; }
   padding: 8px 16px; border-radius: 999px; font-weight: 800; font-size: 1.2rem;
 }
 .slide.msg-slide { background: linear-gradient(135deg, #ffe3f1, #efe6ff 50%, #e2f3ff); }
+.slide.msg-slide { grid-template-rows: auto auto; align-content: center; box-shadow: inset 0 0 0 14px rgba(255,255,255,.7), inset 0 0 0 18px rgba(232,185,60,.7); }
+.slide.msg-none { background: linear-gradient(135deg, #ffe3f1, #fff3d6); box-shadow: none; }
+.slide.msg-ceu {
+  background: radial-gradient(circle at 20% 25%, #fff 1.5px, transparent 2.5px), radial-gradient(circle at 80% 20%, #fff 1.5px, transparent 2.5px),
+    radial-gradient(circle at 70% 80%, #fff 1.5px, transparent 2.5px), linear-gradient(180deg, #1d1135, #4b2777);
+  box-shadow: inset 0 0 0 14px rgba(255,255,255,.08), inset 0 0 0 18px rgba(232,185,60,.7);
+}
+.slide.msg-ceu blockquote { color: #fff !important; }
+.slide.msg-ceu cite { color: #ffd77a !important; }
+.slide.msg-princesa {
+  background: linear-gradient(160deg, #dff1ff, #fff 50%, #ffe1f0);
+  box-shadow: inset 0 0 0 12px #e8b93c, inset 0 0 0 22px #fff, inset 0 0 0 26px rgba(232,185,60,.6);
+}
+.slide-crown { width: 170px; height: auto; margin-bottom: -10px; filter: drop-shadow(0 6px 10px rgba(196,147,26,.35)); }
 .slide.msg-slide blockquote {
   margin: 0; padding: 40px; max-width: 80%; text-align: center;
   font-family: "Fredoka", sans-serif; font-weight: 500; color: var(--ink);

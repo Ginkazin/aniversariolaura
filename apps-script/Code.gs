@@ -45,7 +45,7 @@ function setup() {
     const ss = SpreadsheetApp.create('Mural do aniversário');
     const sh = ss.getSheets()[0];
     sh.setName('Itens');
-    sh.appendRow(['id', 'criadoEm', 'tipo', 'autor', 'texto', 'fileId', 'mime', 'arquivo']);
+    sh.appendRow(['id', 'criadoEm', 'tipo', 'autor', 'texto', 'fileId', 'mime', 'arquivo', 'moldura']);
     sh.setFrozenRows(1);
     DriveApp.getFileById(ss.getId()).moveTo(folder);
     sheetId = ss.getId();
@@ -104,6 +104,7 @@ function listItems_() {
       text: String(r[4]),
       fileId: String(r[5]),
       mime: String(r[6]),
+      frame: String(r[8] || ''),
     });
   }
   items.sort((a, b) => b.createdAt - a.createdAt);
@@ -120,7 +121,7 @@ function addItem_(item) {
     // Apóstrofo na frente impede que textos como "=..." virem fórmula na planilha.
     const txt = v => "'" + String(v || '');
     sheet_().appendRow([item.id, item.createdAt, item.type, txt(item.author), txt(item.text),
-      item.fileId || '', item.mime || '', txt(item.fileName)]);
+      item.fileId || '', item.mime || '', txt(item.fileName), item.frame || '']);
     CACHE.remove('lista');
   } finally {
     lock.releaseLock();
@@ -137,6 +138,7 @@ function addMessage_(b) {
     type: 'message',
     author: clean_(b.author, 60) || 'Convidado',
     text: text,
+    frame: ['none', 'reino', 'ceu', 'princesa'].indexOf(b.frame) >= 0 ? b.frame : 'reino',
   });
   return { ok: true, item: item };
 }

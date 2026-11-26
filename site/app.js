@@ -51,9 +51,10 @@
     const wait = ms => new Promise(r => setTimeout(r, ms));
     const now = Date.now();
     const items = [
-      { id: 'd1', createdAt: now - 60000, type: 'message', author: 'Vovó', text: 'Parabéns, meu amor! Que seu primeiro aninho seja só o começo de muita alegria. 💖' },
-      { id: 'd2', createdAt: now - 120000, type: 'message', author: 'Tio Pedro', text: 'Feliz aniversário, pequena! Muita saúde e muitos sorrisos!' },
-      { id: 'd3', createdAt: now - 180000, type: 'message', author: 'Dinda', text: 'Um ano de muito amor! Te amo demais 🎂' },
+      { id: 'd1', createdAt: now - 60000, type: 'message', author: 'Vovó', text: 'Parabéns, meu amor! Que seu primeiro aninho seja só o começo de muita alegria. 💖', frame: 'reino' },
+      { id: 'd2', createdAt: now - 120000, type: 'message', author: 'Tio Pedro', text: 'Feliz aniversário, pequena! Muita saúde e muitos sorrisos!', frame: 'ceu' },
+      { id: 'd3', createdAt: now - 180000, type: 'message', author: 'Dinda', text: 'Um ano de muito amor! Te amo demais 🎂', frame: 'princesa' },
+      { id: 'd4', createdAt: now - 240000, type: 'message', author: 'Primo Lucas', text: 'Parabéns, Laurinha!', frame: 'none' },
     ];
     const uploads = {};
     let n = 0;
@@ -62,7 +63,7 @@
       async post(b) {
         await wait(250 + Math.random() * 300);
         if (b.action === 'message') {
-          const item = { id: 'm' + ++n, createdAt: Date.now(), type: 'message', author: b.author || 'Convidado', text: b.text };
+          const item = { id: 'm' + ++n, createdAt: Date.now(), type: 'message', author: b.author || 'Convidado', text: b.text, frame: b.frame };
           items.push(item); return { ok: true, item };
         }
         if (b.action === 'start') {
@@ -175,7 +176,29 @@
     msgToggle.setAttribute('aria-expanded', String(!msgForm.hidden));
     if (!msgForm.hidden) msgText.focus();
   });
-  msgText.addEventListener('input', () => { $('#msgCount').textContent = `${msgText.value.length}/1000`; });
+  msgText.addEventListener('input', () => { $('#msgCount').textContent = `${msgText.value.length}/1000`; updateMsgPreview(); });
+
+  // Moldura do recado: prévia ao vivo + opções
+  let msgFrame = store.get('festa_moldura_msg') || 'reino';
+  const msgPreview = $('#msgPreview'), msgFrameOpts = $('#msgFrames');
+  function updateMsgPreview() {
+    messageCard({
+      id: 'preview', frame: msgFrame,
+      text: msgText.value.trim() || 'Seu recadinho aparece assim no mural 💖',
+      author: getAuthor() || 'Seu nome',
+    }, msgPreview);
+  }
+  msgFrameOpts.querySelectorAll('.mf-opt').forEach(b => b.addEventListener('click', () => {
+    msgFrame = b.dataset.id;
+    store.set('festa_moldura_msg', msgFrame);
+    msgFrameOpts.querySelectorAll('.mf-opt').forEach(o => {
+      o.classList.toggle('active', o === b);
+      o.setAttribute('aria-checked', String(o === b));
+    });
+    updateMsgPreview();
+  }));
+  (msgFrameOpts.querySelector(`.mf-opt[data-id="${msgFrame}"]`) || msgFrameOpts.querySelector('.mf-opt')).click();
+  authorInput.addEventListener('input', updateMsgPreview);
   msgForm.addEventListener('submit', async e => {
     e.preventDefault();
     const text = msgText.value.trim();
@@ -185,8 +208,8 @@
     const btn = msgForm.querySelector('button[type=submit]');
     btn.disabled = true; btn.textContent = 'Enviando...';
     try {
-      const { item } = await retry(() => api.post({ action: 'message', author: getAuthor(), text }));
-      msgText.value = ''; $('#msgCount').textContent = '0/1000';
+      const { item } = await retry(() => api.post({ action: 'message', author: getAuthor(), text, frame: msgFrame }));
+      msgText.value = ''; $('#msgCount').textContent = '0/1000'; updateMsgPreview();
       msgForm.hidden = true; msgToggle.setAttribute('aria-expanded', 'false');
       addItems([item]);
       celebrate('Seu recadinho chegou no Reino! 💌');
@@ -207,7 +230,119 @@
     fileInput.value = '';
     if (!files.length) return;
     store.set('festa_autor', getAuthor());
-    files.forEach(f => enqueue(f, getAuthor()));
+    const author = getAuthor();
+    const photos = [];
+    files.map(fixMime).forEach(f => {
+      if (f.type.startsWith('image/') && f.type !== 'image/gif' && window.Molduras) photos.push(f);
+      else enqueue(f, author);           // vídeos vão direto (sem moldura)
+    });
+    if (photos.length) openFramePicker(photos, author);
+  });
+
+  /* ---------------- Escolha de moldura ---------------- */
+  const fp = $('#framePicker'), fpCanvas = $('#fpCanvas'), fpOptions = $('#fpOptions');
+  const fpSend = $('#fpSend'), fpLoading = $('#fpLoading');
+  let fpState = null;
+  if (window.Molduras) Molduras.preload();
+
+  function loadBitmap(file) {
+    if ('createImageBitmap' in window) {
+      return createImageBitmap(file, { imageOrientation: 'from-image' }).catch(() => loadImgEl(file));
+    }
+    return loadImgEl(file);
+  }
+  function loadImgEl(file) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  }
+  function showCanvas(target, source) {
+    target.width = source.width; target.height = source.height;
+    target.getContext('2d').drawImage(source, 0, 0);
+  }
+
+  async function openFramePicker(photos, author) {
+    let preview;
+    try { preview = await loadBitmap(photos[0]); }
+    catch { photos.forEach(f => enqueue(f, author)); return; } // navegador não abre a foto: envia sem moldura
+
+    const saved = store.get('festa_moldura');
+    const chosen = Molduras.list.some(f => f.id === saved) ? saved : 'reino';
+    fpState = { photos, author, preview, chosen, token: Symbol() };
+    $('#fpCount').hidden = photos.length < 2;
+    $('#fpCount').textContent = `A moldura vai para as ${photos.length} fotos`;
+    fpSend.textContent = photos.length > 1 ? `Enviar ${photos.length} fotos` : 'Enviar foto';
+    fpSend.disabled = false;
+    fp.hidden = false;
+    document.body.style.overflow = 'hidden';
+
+    // opções com miniatura da própria foto
+    fpOptions.innerHTML = '';
+    for (const f of Molduras.list) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'fp-opt'; b.dataset.id = f.id;
+      b.setAttribute('role', 'radio');
+      const c = document.createElement('canvas');
+      const label = document.createElement('span'); label.textContent = f.nome;
+      b.append(c, label);
+      b.addEventListener('click', () => selectFrame(f.id));
+      fpOptions.append(b);
+      const token = fpState.token;
+      Molduras.render(preview, f.id, 260).then(cv => { if (fpState && fpState.token === token) showCanvas(c, cv); });
+    }
+    selectFrame(chosen);
+  }
+
+  async function selectFrame(id) {
+    if (!fpState) return;
+    fpState.chosen = id;
+    fpOptions.querySelectorAll('.fp-opt').forEach(b => {
+      const on = b.dataset.id === id;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-checked', String(on));
+    });
+    fpLoading.hidden = false;
+    const token = fpState.token;
+    const cv = await Molduras.render(fpState.preview, id, 900);
+    if (!fpState || fpState.token !== token || fpState.chosen !== id) return;
+    showCanvas(fpCanvas, cv);
+    fpLoading.hidden = true;
+  }
+
+  function closeFramePicker() {
+    fp.hidden = true;
+    document.body.style.overflow = '';
+    if (fpState && fpState.preview.close) fpState.preview.close();
+    fpState = null;
+  }
+  $('#fpClose').addEventListener('click', closeFramePicker);
+  fp.addEventListener('click', e => { if (e.target === fp) closeFramePicker(); });
+
+  fpSend.addEventListener('click', async () => {
+    if (!fpState) return;
+    const { photos, author, chosen } = fpState;
+    store.set('festa_moldura', chosen);
+    fpSend.disabled = true;
+    fpSend.textContent = 'Aplicando moldura...';
+    const framed = [];
+    for (const file of photos) {
+      if (chosen === 'none') { framed.push(file); continue; }
+      try {
+        const bmp = await loadBitmap(file);
+        const cv = await Molduras.render(bmp, chosen, 2048);
+        if (bmp.close) bmp.close();
+        const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.9));
+        const name = file.name.replace(/\.[^.]+$/, '') + '-moldura.jpg';
+        framed.push(blob ? new File([blob], name, { type: 'image/jpeg' }) : file);
+      } catch {
+        framed.push(file);
+      }
+    }
+    closeFramePicker();
+    framed.forEach(f => enqueue(f, author));
   });
 
   const queueEl = $('#queue');
@@ -331,15 +466,22 @@
 
   function colorIndex(id) { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h % 4; }
 
+  function msgFrameOf(item) {
+    return ['none', 'reino', 'ceu', 'princesa'].includes(item.frame) ? item.frame : 'reino';
+  }
+
+  // cartão de recado com a moldura escolhida (usado no mural e na prévia do formulário)
+  function messageCard(item, el = document.createElement('article')) {
+    el.className = `tile message f-${msgFrameOf(item)} c${colorIndex(item.id)}`;
+    el.innerHTML = '<span class="deco deco-a"></span><span class="deco deco-b"></span><span class="deco deco-c"></span>';
+    const p = document.createElement('p'); p.textContent = item.text;
+    const f = document.createElement('footer'); f.textContent = '— ' + item.author;
+    el.append(p, f);
+    return el;
+  }
+
   function makeNode(item) {
-    if (item.type === 'message') {
-      const el = document.createElement('article');
-      el.className = `tile message c${colorIndex(item.id)}`;
-      const p = document.createElement('p'); p.textContent = item.text;
-      const f = document.createElement('footer'); f.textContent = '— ' + item.author;
-      el.append(p, f);
-      return el;
-    }
+    if (item.type === 'message') return messageCard(item);
     const fig = document.createElement('figure');
     fig.className = 'tile ' + item.type;
     const img = document.createElement('img');
@@ -513,7 +655,12 @@
       return new Promise((resolve, reject) => {
         const slide = document.createElement('div');
         if (item.type === 'message') {
-          slide.className = 'slide msg-slide';
+          const fr = msgFrameOf(item);
+          slide.className = `slide msg-slide msg-${fr}`;
+          if (fr !== 'none') {
+            const crown = new Image(); crown.src = 'img/coroa.webp'; crown.className = 'slide-crown'; crown.alt = '';
+            slide.append(crown);
+          }
           const q = document.createElement('blockquote');
           q.textContent = '“' + item.text + '”';
           const c = document.createElement('cite'); c.textContent = '— ' + item.author;

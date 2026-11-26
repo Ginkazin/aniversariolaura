@@ -34,9 +34,8 @@
   <p class="hero-sub">Seja bem-vindo ao Reino! Registre os momentos da festa com fotos, vídeos e um recadinho com carinho.</p>
 
   <section class="card send" aria-label="Enviar">
-    <img class="crown" src="img/coroa.webp" alt="" aria-hidden="true" width="600" height="336">
     <label class="field">
-      <span>Seu nome</span>
+      <span><span class="letra-coroa"><img class="crown" src="img/coroa.webp" alt="" aria-hidden="true" width="600" height="336"></span>Seu nome</span>
       <input id="author" maxlength="60" placeholder="Ex.: Tia Ana" autocomplete="name">
     </label>
     <div class="actions">
@@ -53,6 +52,15 @@
 
     <form id="msgForm" class="msg-form" hidden>
       <textarea id="msgText" maxlength="1000" rows="4" placeholder="Escreva um recadinho..."></textarea>
+      <p class="mf-label">Escolha a moldura do recado</p>
+      <div class="mf-options" id="msgFrames" role="radiogroup" aria-label="Moldura do recado">
+        <button type="button" class="mf-opt" data-id="none" role="radio"><i class="mf-sw sw-none"></i>Sem moldura</button>
+        <button type="button" class="mf-opt" data-id="reino" role="radio"><i class="mf-sw sw-reino"></i>Reino</button>
+        <button type="button" class="mf-opt" data-id="ceu" role="radio"><i class="mf-sw sw-ceu"></i>Céu estrelado</button>
+        <button type="button" class="mf-opt" data-id="princesa" role="radio"><i class="mf-sw sw-princesa"></i>Princesa</button>
+      </div>
+      <p class="mf-label">Prévia</p>
+      <article id="msgPreview" class="tile message" aria-live="polite"></article>
       <div class="msg-foot">
         <span id="msgCount" class="muted">0/1000</span>
         <button class="btn btn-blue btn-small" type="submit">Enviar mensagem</button>
@@ -85,7 +93,6 @@
   </section>
 
   <footer class="foot">
-    <img src="img/castelo.webp" alt="" aria-hidden="true" width="532" height="700">
     <p>Feito com carinho para a <span data-nome>Aniversariante</span> 👑</p>
   </footer>
 </main>
@@ -111,6 +118,22 @@
   </div>
 </div>
 
+<div id="framePicker" class="fp-modal" hidden role="dialog" aria-modal="true" aria-labelledby="fpTitle">
+  <div class="fp-sheet">
+    <div class="fp-head">
+      <h3 id="fpTitle">Escolha a moldura</h3>
+      <button type="button" class="fp-close" id="fpClose" aria-label="Cancelar">×</button>
+    </div>
+    <div class="fp-preview">
+      <canvas id="fpCanvas" aria-label="Prévia da foto com moldura"></canvas>
+      <span class="fp-loading" id="fpLoading">Preparando...</span>
+    </div>
+    <p class="fp-count" id="fpCount" hidden></p>
+    <div class="fp-options" id="fpOptions" role="radiogroup" aria-label="Molduras"></div>
+    <button type="button" class="btn btn-pink fp-send" id="fpSend">Enviar foto</button>
+  </div>
+</div>
+
 <div id="telao" class="telao" hidden>
   <div class="telao-stage" id="stage"></div>
   <aside class="telao-side">
@@ -122,6 +145,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="molduras.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
