@@ -500,14 +500,21 @@
     if (item.type === 'message') return messageCard(item);
     const fig = document.createElement('figure');
     fig.className = 'tile ' + item.type;
+    // Capa padrão do tema: aparece na hora e fica até a miniatura real carregar
+    // (o Google leva alguns minutos para gerar a miniatura de vídeos novos).
+    const cover = document.createElement('div');
+    cover.className = 'cover';
+    cover.innerHTML = item.type === 'video'
+      ? '<span class="cover-label">Vídeo</span>'
+      : '<span class="cover-label">Carregando foto...</span>';
+    fig.append(cover);
     const img = document.createElement('img');
     img.loading = 'lazy'; img.alt = (item.type === 'video' ? 'Vídeo' : 'Foto') + ' de ' + item.author;
+    img.addEventListener('load', () => fig.classList.add('loaded'));
     fig.append(img);
     loadDriveImg(img, item, 600, () => {
-      const ph = document.createElement('div');
-      ph.className = 'placeholder' + (item.type === 'photo' ? ' photo-ph' : '');
-      ph.textContent = item.type === 'video' ? '' : 'Foto';
-      img.replaceWith(ph);
+      img.remove();
+      if (item.type === 'photo') cover.querySelector('.cover-label').textContent = 'Foto';
     });
     if (item.type === 'video') { const pl = document.createElement('span'); pl.className = 'play'; fig.append(pl); }
     const cap = document.createElement('figcaption'); cap.textContent = item.author;
@@ -699,10 +706,20 @@
           slide.append(who);
           resolve(slide);
         };
-        img.onerror = reject;
+        // vídeo sem miniatura ainda: mostra a capa do tema em vez de pular
+        const fallback = () => {
+          if (item.type !== 'video') return reject();
+          slide.className = 'slide video-cover-slide';
+          slide.innerHTML = '<span class="play"></span>';
+          const who = document.createElement('div'); who.className = 'who';
+          who.textContent = '🎬 Vídeo de ' + item.author;
+          slide.append(who);
+          resolve(slide);
+        };
+        img.onerror = fallback;
         const local = localPreview.get(item.fileId);
         if (local) img.src = local;
-        else if (DEMO) reject();
+        else if (DEMO) fallback();
         else img.src = thumbUrl(item.fileId, 1600);
       });
     }

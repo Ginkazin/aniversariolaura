@@ -216,11 +216,43 @@ body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
   box-shadow: 0 4px 14px rgba(0,0,0,.2);
 }
 .tile .play::after, .slide .play::after { content: ""; border-left: 16px solid var(--pink-deep); border-top: 10px solid transparent; border-bottom: 10px solid transparent; margin-left: 4px; }
-.tile .placeholder {
-  aspect-ratio: 4 / 5; display: grid; place-items: center; color: #fff; font-weight: 800;
-  background: linear-gradient(135deg, var(--lilac), var(--blue));
+/* Capa padrão enquanto a miniatura do Google não fica pronta */
+.tile .cover { position: relative; aspect-ratio: 4 / 5; overflow: hidden; }
+.tile.loaded .cover { display: none; }
+.tile:not(.loaded) img { position: absolute; top: 0; left: 0; width: 1px; height: 1px; min-height: 0; opacity: 0; }
+.tile .cover-label {
+  position: absolute; top: 10px; left: 10px; padding: 3px 10px; border-radius: 999px;
+  background: rgba(255,255,255,.9); color: var(--lilac-deep); font-size: .72rem; font-weight: 800;
 }
-.tile .placeholder.photo-ph { background: linear-gradient(135deg, var(--pink), var(--lilac)); }
+/* vídeo: céu noturno com estrelas e castelo */
+.tile.video .cover {
+  background:
+    url(img/castelo.webp) 50% 97% / 38% auto no-repeat,
+    url(img/estrela.webp) 16% 22% / 13% auto no-repeat,
+    url(img/estrela.webp) 84% 14% / 9% auto no-repeat,
+    radial-gradient(circle at 30% 40%, #fff 1px, transparent 2px),
+    radial-gradient(circle at 70% 32%, #fff 1px, transparent 2px),
+    radial-gradient(circle at 60% 60%, rgba(255,255,255,.7) 1px, transparent 2px),
+    radial-gradient(circle at 20% 66%, rgba(255,255,255,.7) 1px, transparent 2px),
+    linear-gradient(180deg, #1d1135, #3a1d66 60%, #5a2f8c);
+}
+/* foto: degradê do tema com estrela piscando */
+.tile.photo .cover {
+  background:
+    url(img/estrela.webp) center 42% / 22% auto no-repeat,
+    linear-gradient(140deg, #ffd9ee, #e9dfff 55%, #d9efff);
+  animation: cover-pulse 1.6s ease-in-out infinite;
+}
+.tile.photo .cover-label { color: var(--pink-deep); }
+.slide.video-cover-slide {
+  background:
+    url(img/castelo.webp) 50% 92% / auto 46% no-repeat,
+    url(img/estrela.webp) 14% 18% / auto 12% no-repeat,
+    url(img/estrela.webp) 86% 12% / auto 8% no-repeat,
+    linear-gradient(180deg, #1d1135, #3a1d66 60%, #5a2f8c);
+}
+.slide.video-cover-slide .play { position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%) scale(1.6); margin: 0; }
+@keyframes cover-pulse { 50% { filter: brightness(1.06) saturate(1.15); } }
 
 /* ---------- Recados e suas molduras ---------- */
 .tile.message { padding: 16px 16px 14px; cursor: default; }
