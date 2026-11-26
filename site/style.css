@@ -44,7 +44,8 @@ body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
 /* Botão flutuante: aparece quando o convidado rola o mural e o cartão de envio sai da tela */
 .fab {
   position: fixed; z-index: 40; left: 50%; transform: translateX(-50%);
-  bottom: calc(16px + env(safe-area-inset-bottom));
+  /* acima do selo "Powered by Netlify" que fica no canto de baixo */
+  bottom: calc(68px + env(safe-area-inset-bottom));
   display: inline-flex; align-items: center; gap: 8px;
   border: 0; border-radius: 999px; padding: 14px 26px; cursor: pointer;
   font-family: "Fredoka", sans-serif; font-weight: 600; font-size: 1.1rem; color: #fff;
@@ -372,7 +373,7 @@ body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; }
 
 /* ---------- Toast ---------- */
 .toast {
-  position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 60;
+  position: fixed; left: 50%; bottom: calc(132px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 60;
   background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 14px; font-weight: 700;
   box-shadow: 0 8px 24px rgba(0,0,0,.2); max-width: calc(100% - 32px); text-align: center;
 }
