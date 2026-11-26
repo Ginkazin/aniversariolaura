@@ -18,5 +18,5 @@ window.FESTA = {
   siteUrl: "https://aniversariolaura-k9x4.netlify.app/",
 
   // De quantos em quantos segundos o mural busca novidades
-  pollSeconds: 15,
+  pollSeconds: 45,
 };
