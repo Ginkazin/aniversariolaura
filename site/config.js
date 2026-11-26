@@ -15,7 +15,7 @@ window.FESTA = {
 
   // Endereço público do site (usado no QR code do telão e dos cartões).
   // Ex.: "https://festa-da-maria.netlify.app"
-  siteUrl: "",
+  siteUrl: "https://aniversariolaura-k9x4.netlify.app/",
 
   // De quantos em quantos segundos o mural busca novidades
   pollSeconds: 15,
