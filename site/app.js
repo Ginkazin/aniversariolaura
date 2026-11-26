@@ -99,8 +99,23 @@
     });
   }
 
-  async function uploadFile(file, author, onProgress) {
-    const start = await retry(() => api.post({ action: 'start', name: file.name, mime: file.type, size: file.size, author }));
+  // Guarda o recado também como imagem (cartão com moldura) na pasta "Recados" do Drive.
+  // Roda em segundo plano: se falhar, o recado já está salvo na planilha e no mural.
+  async function saveMessageImage(item) {
+    if (DEMO || !item || !window.Molduras || !Molduras.renderMessage) return;
+    try {
+      const cv = await Molduras.renderMessage({ text: item.text, author: item.author, frame: item.frame });
+      const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.92));
+      if (!blob) return;
+      const file = new File([blob], 'recado.jpg', { type: 'image/jpeg' });
+      await uploadFile(file, item.author, () => {}, { forMessage: item.id });
+    } catch (err) {
+      console.warn('Não foi possível salvar a imagem do recado:', err);
+    }
+  }
+
+  async function uploadFile(file, author, onProgress, extra = {}) {
+    const start = await retry(() => api.post({ action: 'start', name: file.name, mime: file.type, size: file.size, author, ...extra }));
     let offset = 0, last = null;
     onProgress(0);
     while (offset < file.size) {
@@ -213,6 +228,7 @@
       msgForm.hidden = true; msgToggle.setAttribute('aria-expanded', 'false');
       addItems([item]);
       celebrate('Seu recadinho chegou no Reino! 💌');
+      saveMessageImage(item);
     } catch (err) {
       toast('Não foi possível enviar: ' + err.message);
     } finally {

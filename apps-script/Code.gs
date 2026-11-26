@@ -159,7 +159,15 @@ function startUpload_(b) {
   const extMatch = String(b.name || '').match(/\.[a-z0-9]{2,5}$/i);
   const ext = extMatch ? extMatch[0].toLowerCase() : '';
   const stamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH.mm.ss');
-  const fileName = stamp + ' - ' + author.replace(/[\\/:*?"<>|]/g, '') + ext;
+  const safeAuthor = author.replace(/[\\/:*?"<>|]/g, '');
+
+  // Imagem de um recado: vai para a subpasta "Recados" e não vira item novo no mural
+  const forMessage = clean_(b.forMessage, 60);
+  if (forMessage && mime.indexOf('image/') !== 0) throw new Error('Imagem de recado inválida');
+  const fileName = forMessage
+    ? stamp + ' - Recado de ' + safeAuthor + ext
+    : stamp + ' - ' + safeAuthor + ext;
+  const parent = forMessage ? recadosFolderId_() : folderId_();
 
   const res = UrlFetchApp.fetch(
     'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,mimeType', {
@@ -170,7 +178,7 @@ function startUpload_(b) {
         'X-Upload-Content-Type': mime,
         'X-Upload-Content-Length': String(size),
       },
-      payload: JSON.stringify({ name: fileName, parents: [folderId_()], mimeType: mime }),
+      payload: JSON.stringify({ name: fileName, parents: [parent], mimeType: mime }),
       muteHttpExceptions: true,
     });
   if (res.getResponseCode() !== 200) {
@@ -183,7 +191,7 @@ function startUpload_(b) {
 
   const uploadId = Utilities.getUuid();
   CACHE.put('up_' + uploadId, JSON.stringify({
-    location: location, size: size, mime: mime, author: author, fileName: fileName,
+    location: location, size: size, mime: mime, author: author, fileName: fileName, forMessage: forMessage,
   }), 21600);
   return { ok: true, uploadId: uploadId };
 }
@@ -211,6 +219,10 @@ function uploadChunk_(b) {
   if (code === 200 || code === 201) {
     const file = JSON.parse(res.getContentText());
     CACHE.remove('up_' + b.uploadId);
+    if (info.forMessage) {
+      linkMessageFile_(info.forMessage, file.id, info.mime, info.fileName);
+      return { ok: true, done: true, item: null };
+    }
     const item = addItem_({
       id: Utilities.getUuid(),
       createdAt: Date.now(),
@@ -233,6 +245,47 @@ function folderId_() {
   const id = PROPS.getProperty('FOLDER_ID');
   if (!id) throw new Error('Rode a função setup() no editor do Apps Script primeiro');
   return id;
+}
+
+// Subpasta "Recados" (criada na primeira vez que alguém manda um recado)
+function recadosFolderId_() {
+  let id = PROPS.getProperty('RECADOS_FOLDER_ID');
+  if (id) return id;
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    id = PROPS.getProperty('RECADOS_FOLDER_ID');
+    if (!id) {
+      const parent = DriveApp.getFolderById(folderId_());
+      const it = parent.getFoldersByName('Recados');
+      id = (it.hasNext() ? it.next() : parent.createFolder('Recados')).getId();
+      PROPS.setProperty('RECADOS_FOLDER_ID', id);
+    }
+  } finally {
+    lock.releaseLock();
+  }
+  return id;
+}
+
+// Grava na linha do recado o arquivo de imagem correspondente
+function linkMessageFile_(messageId, fileId, mime, fileName) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sh = sheet_();
+    const last = sh.getLastRow();
+    if (last < 2) return;
+    const ids = sh.getRange(2, 1, last - 1, 1).getValues();
+    for (let i = ids.length - 1; i >= 0; i--) {
+      if (String(ids[i][0]) === messageId) {
+        sh.getRange(i + 2, 6, 1, 3).setValues([[fileId, mime, "'" + fileName]]);
+        CACHE.remove('lista');
+        return;
+      }
+    }
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function sheet_() {

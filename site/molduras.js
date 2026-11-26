@@ -38,7 +38,8 @@
   function fonts() {
     if (!fontsReady) {
       fontsReady = (document.fonts && document.fonts.load)
-        ? Promise.all([document.fonts.load('700 40px Fredoka'), document.fonts.load('600 40px Fredoka')]).catch(() => {})
+        ? Promise.all([document.fonts.load('700 40px Fredoka'), document.fonts.load('600 40px Fredoka'),
+            document.fonts.load('600 40px Nunito'), document.fonts.load('800 40px Nunito')]).catch(() => {})
         : Promise.resolve();
     }
     return fontsReady;
@@ -269,5 +270,180 @@
   // pré-carrega as imagens para a prévia abrir rápido
   function preload() { ['coroa', 'estrela', 'castelo', 'unicornio', 'logo-reino', 'laurinha', 'carruagem'].forEach(n => asset(n).catch(() => {})); fonts(); }
 
-  window.Molduras = { list: LIST, render, preload };
+  /* ============================================================
+   *  Recado como imagem (cartão 1080x1350) — vai para o Drive
+   * ============================================================ */
+  function wrapLines(ctx, text, maxW) {
+    const lines = [];
+    String(text).split(/\r?\n/).forEach(par => {
+      const words = par.split(/\s+/).filter(Boolean);
+      if (!words.length) { lines.push(''); return; }
+      let line = '';
+      for (let word of words) {
+        // palavra maior que a linha: quebra no meio
+        while (ctx.measureText(word).width > maxW) {
+          let cut = word.length - 1;
+          while (cut > 1 && ctx.measureText(word.slice(0, cut)).width > maxW) cut--;
+          if (line) { lines.push(line); line = ''; }
+          lines.push(word.slice(0, cut));
+          word = word.slice(cut);
+        }
+        const test = line ? line + ' ' + word : word;
+        if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = word; }
+        else line = test;
+      }
+      lines.push(line);
+    });
+    return lines;
+  }
+
+  const MSG_STYLES = {
+    none: {
+      need: ['estrela'],
+      ink: '#4a3566', author: '#f06aaa', foot: '#a58fc4', quote: 'rgba(240,106,170,.18)',
+      bg(ctx, W, H) {
+        ctx.fillStyle = '#ffe9f4'; ctx.fillRect(0, 0, W, H);
+        const rnd = rng(5);
+        for (let i = 0; i < 80; i++) {
+          ctx.globalAlpha = 0.45; ctx.fillStyle = ['#ffb3d9', '#bfa3ff', '#8fd0ff', '#e8b93c'][i % 4];
+          ctx.beginPath(); ctx.arc(rnd() * W, rnd() * H, 5 + rnd() * 5, 0, 7); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      },
+      deco() {},
+    },
+    reino: {
+      need: ['coroa', 'estrela', 'castelo', 'unicornio'],
+      ink: '#4a3566', author: '#f06aaa', foot: '#7a5bb5', quote: 'rgba(143,106,232,.18)',
+      bg(ctx, W, H) {
+        const g = ctx.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, '#ffd2ea'); g.addColorStop(0.5, '#e6d9ff'); g.addColorStop(1, '#d2ecff');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        const rnd = rng(7);
+        for (let i = 0; i < 70; i++) {
+          ctx.globalAlpha = 0.5; ctx.fillStyle = '#fff';
+          ctx.beginPath(); ctx.arc(rnd() * W, rnd() * H, 3 + rnd() * 5, 0, 7); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 14; roundRect(ctx, 34, 34, W - 68, H - 68, 50); ctx.stroke();
+        ctx.strokeStyle = '#e8b93c'; ctx.lineWidth = 5; roundRect(ctx, 48, 48, W - 96, H - 96, 40); ctx.stroke();
+      },
+      deco(ctx, A, W, H) {
+        sticker(ctx, A.coroa, W / 2, 140, { w: 250, rot: -0.05 });
+        sticker(ctx, A.estrela, 130, 130, { h: 70, rot: -0.3 });
+        sticker(ctx, A.estrela, W - 140, 150, { h: 54, rot: 0.3 });
+        sticker(ctx, A.castelo, 175, H - 190, { h: 230, rot: -0.04 });
+        sticker(ctx, A.unicornio, W - 190, H - 185, { h: 220, rot: 0.03 });
+      },
+    },
+    ceu: {
+      need: ['estrela', 'logo-reino'],
+      ink: '#ffffff', author: '#ffd77a', foot: '#cdb8ee', quote: 'rgba(255,255,255,.14)',
+      bg(ctx, W, H) {
+        const g = ctx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, '#1d1135'); g.addColorStop(0.6, '#3a1d66'); g.addColorStop(1, '#4b2777');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        const rnd = rng(11);
+        for (let i = 0; i < 140; i++) {
+          ctx.globalAlpha = 0.35 + rnd() * 0.65; ctx.fillStyle = '#fff';
+          ctx.beginPath(); ctx.arc(rnd() * W, rnd() * H, 1.5 + rnd() * 3, 0, 7); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        for (let i = 0; i < 8; i++) sparkle(ctx, rnd() * W, rnd() * H, 10 + rnd() * 12, '#fff3c4');
+        ctx.strokeStyle = 'rgba(232,185,60,.85)'; ctx.lineWidth = 5; roundRect(ctx, 44, 44, W - 88, H - 88, 40); ctx.stroke();
+      },
+      deco(ctx, A, W, H) {
+        const glow = 'rgba(255,220,140,.7)';
+        sticker(ctx, A.estrela, 150, 150, { h: 90, rot: -0.25, shadow: glow });
+        sticker(ctx, A.estrela, W - 150, 170, { h: 64, rot: 0.3, shadow: glow });
+        sticker(ctx, A.estrela, W - 240, 110, { h: 36, rot: 0.1, shadow: glow });
+        sticker(ctx, A['logo-reino'], W / 2, H - 170, { h: 250, shadow: 'rgba(0,0,0,.35)' });
+      },
+    },
+    princesa: {
+      need: ['coroa', 'carruagem', 'laurinha', 'estrela'],
+      ink: '#4a3566', author: '#f06aaa', foot: '#3fa3e8', quote: 'rgba(63,163,232,.16)',
+      bg(ctx, W, H) {
+        const g = ctx.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, '#dcefff'); g.addColorStop(0.5, '#ffffff'); g.addColorStop(1, '#ffdcee');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        const rnd = rng(3);
+        for (let i = 0; i < 60; i++) {
+          ctx.globalAlpha = 0.5; ctx.fillStyle = ['#ffb3d9', '#bfa3ff', '#8fd0ff', '#e8b93c'][i % 4];
+          ctx.beginPath(); ctx.arc(rnd() * W, rnd() * H, 4 + rnd() * 4, 0, 7); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = '#e8b93c'; ctx.lineWidth = 9; roundRect(ctx, 34, 34, W - 68, H - 68, 46); ctx.stroke();
+        ctx.lineWidth = 3; roundRect(ctx, 54, 54, W - 108, H - 108, 34); ctx.stroke();
+      },
+      deco(ctx, A, W, H) {
+        sticker(ctx, A.coroa, 150, 120, { w: 190, rot: -0.4 });
+        sparkle(ctx, W - 130, 120, 22, '#e8b93c');
+        sparkle(ctx, W - 190, 90, 13, '#bfa3ff');
+        sticker(ctx, A.carruagem, 200, H - 170, { h: 190, rot: -0.03 });
+        sticker(ctx, A.laurinha, W - 170, H - 230, { h: 340, rot: 0.03 });
+      },
+    },
+  };
+
+  /**
+   * Desenha o recado como cartão.
+   * @param {{text:string, author:string, frame:string}} msg
+   * @returns {Promise<HTMLCanvasElement>}
+   */
+  async function renderMessage(msg) {
+    const st = MSG_STYLES[msg.frame] || MSG_STYLES.reino;
+    const W = 1080, H = 1350;
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    const [A] = await Promise.all([assets(st.need), fonts()]);
+    st.bg(ctx, W, H);
+
+    // área do texto (entre as decorações de cima e de baixo)
+    const boxX = 130, boxW = W - 260, boxTop = 270, boxBottom = 1000;
+    const authorTxt = '— ' + (msg.author || 'Convidado');
+
+    // fonte encolhe até o texto caber
+    let size = 86, lines, lh;           // recado curto fica com letra maior
+    for (;;) {
+      ctx.font = `600 ${size}px Nunito, sans-serif`;
+      lines = wrapLines(ctx, msg.text || '', boxW);
+      lh = size * 1.32;
+      const total = lines.length * lh + size * 1.6;
+      if (total <= boxBottom - boxTop || size <= 26) break;
+      size -= 2;
+    }
+    const blockH = lines.length * lh + size * 1.6;
+    let y = boxTop + (boxBottom - boxTop - blockH) / 2;
+
+    // aspas decorativas
+    ctx.save();
+    ctx.font = `700 ${Math.round(size * 4)}px Fredoka, sans-serif`;
+    ctx.fillStyle = st.quote; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText('“', boxX - 50, y - size * 1.4);
+    ctx.restore();
+
+    ctx.fillStyle = st.ink; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.font = `600 ${size}px Nunito, sans-serif`;
+    for (const line of lines) { ctx.fillText(line, W / 2, y); y += lh; }
+    y += size * 0.45;
+    ctx.fillStyle = st.author;
+    ctx.font = `800 ${Math.round(size * 0.85)}px Nunito, sans-serif`;
+    let aSize = size * 0.85;
+    while (ctx.measureText(authorTxt).width > boxW && aSize > 20) { aSize -= 2; ctx.font = `800 ${aSize}px Nunito, sans-serif`; }
+    ctx.fillText(authorTxt, W / 2, y);
+
+    st.deco(ctx, A, W, H);
+
+    // rodapé com o nome da festa (não no "céu", que já tem o logo)
+    if (msg.frame !== 'ceu') {
+      ctx.fillStyle = st.foot; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      fitText(ctx, `O Reino Encantado da ${NOME}`, W / 2, H - 175, 470, 34, { weight: 700, color: st.foot });
+      if (DATA) fitText(ctx, DATA, W / 2, H - 130, 470, 28, { weight: 600, color: st.foot });
+    }
+    return canvas;
+  }
+
+  window.Molduras = { list: LIST, render, renderMessage, preload };
 })();
